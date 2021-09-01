@@ -27,8 +27,15 @@ namespace webapi_demo_1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(options=> 
-                options.Filters.Add<ApiErrorFilter>());
+            services.AddControllers(options=>
+            {
+                options.Filters.Add<ApiErrorFilter>();
+                options.Filters.Add<RequireHttpsOrCloseAttribute>();
+            });
+            services.AddCors(options =>
+            {
+                options.AddPolicy("my-policy", policy=> policy.AllowAnyOrigin());
+            });
             services.AddOpenApiDocument();
             services.AddApiVersioning(options=> {
                 options.DefaultApiVersion = new ApiVersion(1, 0);
@@ -53,14 +60,13 @@ namespace webapi_demo_1
                 app.UseOpenApi();
                 app.UseSwaggerUi3();
                 app.UseReDoc();
-                //app.UseSwaggerUi3WithApiExplorer(options => options.GeneratorSettings.DefaultPropertyNameHandling = NJsonSchema.PropertyNameHandling.Default);
-                //app.UseSwaggerUi3(options => options.GeneratorSettings.DefaultPropertyNameHandling = NJsonSchema.PropertyNameHandling.CamelCase);
-                //app.UseSwaggerUi3WithApiExplorer(options => 
-                //    options.GeneratorSettings.DefaultPropertyNameHandling = NJsonSchema.PropertyNameHandling.CamelCase);
+            }
+            else
+            {
+             app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
-
+            app.UseCors("my-policy");
             app.UseRouting();
 
             app.UseAuthorization();
